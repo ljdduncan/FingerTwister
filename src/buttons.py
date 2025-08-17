@@ -146,6 +146,7 @@ class Buttons():
         self.switch_mapping[36] = "BUTTON_36"
 
     def set_non_game_state(self):
+        # print("Setting non game state")
         for button_key, button_value in self.game_buttons.items():
             if button_value.color == ButtonColor.WHITE:
                 button_value.LED_state = 1

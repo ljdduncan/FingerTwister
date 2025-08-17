@@ -21,7 +21,7 @@ def main_loop():
     date = datetime.datetime.now().date()
     minute = datetime.datetime.now().minute
     while True:
-        altered_states = controller.control_buttons(buttons.game_buttons, buttons.led_mapping, buttons.switch_mapping)
+        altered_states, last_pressed = controller.control_buttons(buttons.game_buttons, buttons.led_mapping, buttons.switch_mapping)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -46,16 +46,27 @@ def main_loop():
                         last_input = int(datetime.datetime.now().timestamp())
                         state.handle_back()
 
-        if state.current_state.state_name == "Game":
+        game_states_list = ["Game", "Memory Game"]
+        if state.current_state.state_name in game_states_list:
             last_input = int(datetime.datetime.now().timestamp())
-            return_message = state.detect_presses(altered_states)
+            return_message = state.detect_presses(altered_states, last_pressed)
 
             #false if next button is not pressed. message will contain the next button in return_message[0] and light it up
             if return_message[1] == False:
                 try:
-                    buttons.game_buttons[return_message[0]].LED_state = 1
-                except:
-                    pass
+                    if state.current_state.state_name == "Game":
+                        print("return_message[0]")
+                        print(return_message[0])
+                        buttons.game_buttons[return_message[0]].LED_state = 1
+                    if state.current_state.state_name == "Memory Game":
+                        # buttons.set_non_game_state()
+                        blink_state = state.getBlinkState()
+                        # print("blink state")
+                        # print(blink_state)
+                        buttons.game_buttons[blink_state[0]].LED_state = blink_state[1]
+
+                except Exception as e:
+                    print(f"exception caught in game loop: {e}")
             #true if game was ended
             else:
                 buttons.set_non_game_state()
@@ -77,7 +88,8 @@ def main_loop():
                 time = int(datetime.datetime.now().timestamp())
                 buttons.pulse_wave()
 
-        if state.current_state.state_name != "Main" and state.current_state.state_name != "Game":
+        states_to_ignore = ["Main", "Game", "Memory Game"]
+        if state.current_state.state_name not in states_to_ignore:
             buttons.set_non_game_state()
             if state.current_state.state_name == "Win" and (int(datetime.datetime.now().timestamp()) - last_input) >= 180:
                 state.handle_goto_main()

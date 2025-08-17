@@ -82,7 +82,8 @@ play_again_position = (225, 480)
 mm_header = text.render_text("Finger Twister", 120, settings.TEXT_COLOR, (settings.DISPLAY_W/2,250), True)
 mm_play_option = text.render_text("Play", 80, settings.TEXT_COLOR, (500,400))
 mm_leaderboard_option = text.render_text("Leaderboard", 80, settings.TEXT_COLOR, (500,500))
-mm_credits_option = text.render_text("Credits", 80, settings.TEXT_COLOR, (500,600))
+mm_more_games_option = text.render_text("More Game Modes", 80, settings.TEXT_COLOR, (500,600))
+mm_credits_option = text.render_text("Credits", 80, settings.TEXT_COLOR, (500,700))
 mm_cursor = text.render_text("->", 80, settings.TEXT_COLOR, (400,400))
 
 mm_controls = pygame.Surface((1500, 1500), pygame.SRCALPHA)
@@ -90,6 +91,19 @@ mm_controls.blit(select_control, select_position)
 mm_controls.blit(back_control_muted, back_position)
 mm_controls.blit(up_control, up_position)
 mm_controls.blit(down_control, down_position)
+
+# More Game Modes items
+more_games_header = text.render_text("More Game Modes", 120, settings.TEXT_COLOR, (settings.DISPLAY_W/2,250), True)
+more_games_memory_option = text.render_text("Memory Game", 80, settings.TEXT_COLOR, (500,400))
+more_games_asdf_option = text.render_text("asdf", 80, settings.TEXT_COLOR, (500,500))
+more_games_asdf2_option = text.render_text("asdf2", 80, settings.TEXT_COLOR, (500,600))
+more_games_cursor = text.render_text("->", 80, settings.TEXT_COLOR, (400,400))
+
+more_games_controls = pygame.Surface((1500, 1500), pygame.SRCALPHA)
+more_games_controls.blit(select_control, select_position)
+more_games_controls.blit(back_control, back_position)
+more_games_controls.blit(up_control, up_position)
+more_games_controls.blit(down_control, down_position)
 
 # Credits items
 c_header = text.render_text("Credits", 80, settings.TEXT_COLOR, (settings.DISPLAY_W/2, 190), True)
@@ -138,6 +152,13 @@ game_controls.blit(select_control_muted, select_position)
 game_controls.blit(back_control, back_position)
 game_controls.blit(up_control_muted, up_position)
 game_controls.blit(down_control_muted, down_position)
+
+# Memory game items
+memory_game_instructions_text_header = text.render_text("How to play", 120, settings.TEXT_COLOR, (50, 50))
+memory_game_instructions_text_1 = text.render_text("Test your memory!", 60, settings.TEXT_COLOR, (50, 200))
+memory_game_instructions_text_2 = text.render_text("Buttons light up in order", 60, settings.TEXT_COLOR, (50, 300))
+memory_game_instructions_text_3 = text.render_text("Press the buttons in that same order", 60, settings.TEXT_COLOR, (50, 400))
+memory_game_instructions_text_4 = text.render_text("No need to keep holding them down!", 60, settings.TEXT_COLOR, (50, 500))
 
 #Leaderboard items
 leaderboard_header = text.render_text("All-Time Leaderboard", 120, settings.TEXT_COLOR, (settings.DISPLAY_W/2,50), True)
@@ -200,6 +221,7 @@ def render_main_menu(selection, timer_buttons):
     main_menu_surface.blit(mm_header[0], mm_header[1])
     main_menu_surface.blit(mm_play_option[0], mm_play_option[1])
     main_menu_surface.blit(mm_leaderboard_option[0], mm_leaderboard_option[1])
+    main_menu_surface.blit(mm_more_games_option[0], mm_more_games_option[1])
     main_menu_surface.blit(mm_credits_option[0], mm_credits_option[1])
     main_menu_surface.blit(mm_controls, controls_position)
 
@@ -214,9 +236,36 @@ def render_main_menu(selection, timer_buttons):
             main_menu_surface.blit(mm_cursor[0], mm_cursor[1])
         case "Leaderboard":
             main_menu_surface.blit(mm_cursor[0], (mm_cursor[1][0], mm_cursor[1][1] + 100)) #disgusting calc. essentially just modifies the position tuple to offset it
-        case "Credits":
+        case "More Game Modes":
             main_menu_surface.blit(mm_cursor[0], (mm_cursor[1][0], mm_cursor[1][1] + 200))
+        case "Credits":
+            main_menu_surface.blit(mm_cursor[0], (mm_cursor[1][0], mm_cursor[1][1] + 300))
     return main_menu_surface
+
+def render_more_games(selection, buttons):
+    more_games_surface = pygame.Surface((settings.DISPLAY_W, settings.DISPLAY_H))
+    more_games_surface.fill(settings.BACKGROUND_COLOR)
+    more_games_surface.blit(more_games_header[0], more_games_header[1])
+    more_games_surface.blit(more_games_memory_option[0], more_games_memory_option[1])
+    more_games_surface.blit(more_games_asdf_option[0], more_games_asdf_option[1])
+    more_games_surface.blit(more_games_asdf2_option[0], more_games_asdf2_option[1])
+    more_games_surface.blit(more_games_controls, controls_position)
+
+    for deco_button in buttons:
+        if not deco_button[2]:
+            more_games_surface.blit(graphics.sprites[deco_button[1]], (200 * deco_button[0] - 100, 50))
+        else:
+            more_games_surface.blit(graphics.sprites[deco_button[1] + "_pressed"], (200 * deco_button[0] - 100, 50))
+
+    match selection:
+        case "Memory Game":
+            more_games_surface.blit(more_games_cursor[0], more_games_cursor[1])
+        case "asdf":
+            more_games_surface.blit(more_games_cursor[0], (more_games_cursor[1][0], more_games_cursor[1][1] + 100)) #disgusting calc. essentially just modifies the position tuple to offset it
+        case "asdf2":
+            more_games_surface.blit(more_games_cursor[0], (more_games_cursor[1][0], more_games_cursor[1][1] + 200))
+    return more_games_surface
+
 
 def render_credits():
     credits_surface = pygame.Surface((settings.DISPLAY_W, settings.DISPLAY_H))
@@ -272,6 +321,29 @@ def render_game(display_buttons_state):
             game_surface.blit(button_flash, (button_position[0]-30, button_position[1]))
 
     return game_surface
+
+def render_memory_game(current_score, display_buttons_state):
+    memory_game_surface = pygame.Surface((settings.DISPLAY_W, settings.DISPLAY_H))
+    memory_game_surface.fill(settings.BACKGROUND_COLOR)
+    memory_game_surface.blit(game_controls, controls_position)
+    memory_game_surface.blit(memory_game_instructions_text_header[0], memory_game_instructions_text_header[1])
+    memory_game_surface.blit(memory_game_instructions_text_1[0], memory_game_instructions_text_1[1])
+    memory_game_surface.blit(memory_game_instructions_text_2[0], memory_game_instructions_text_2[1])
+    memory_game_surface.blit(memory_game_instructions_text_3[0], memory_game_instructions_text_3[1])
+    memory_game_surface.blit(memory_game_instructions_text_4[0], memory_game_instructions_text_4[1])
+    
+    memory_game_score_text = text.render_text("Score: "+ str(current_score), 80, settings.TEXT_COLOR, (300, 620))
+    memory_game_surface.blit(memory_game_score_text[0],memory_game_score_text[1])
+
+    for index, button in enumerate(display_buttons_state):
+        button_color = _get_button_color(index, button)
+        button_position = _get_button_position(index)
+        memory_game_surface.blit(button_color, button_position)
+        if button == (0,1):
+            memory_game_surface.blit(button_flash, (button_position[0]-30, button_position[1]))
+
+    return memory_game_surface
+
 
 def render_leaderboard(selection, leaderboard):
     leaderboard_surface = pygame.Surface((settings.DISPLAY_W, settings.DISPLAY_H))

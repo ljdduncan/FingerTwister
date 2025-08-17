@@ -12,9 +12,11 @@ class State():
         self.leaderboard = leaderboard
         self.daily_leaderboard = daily_leaderboard
         self.nav_methods = {"main_menu": self.nav_to_main, 
+                            "more_games": self.nav_to_more_games,
                             "credits": self.nav_to_credits, 
                             "cats": self.nav_to_cats,
                             "game": self.nav_to_game,
+                            "memory_game": self.nav_to_memory_game,
                             "loss": self.nav_to_loss,
                             "win": self.nav_to_win,
                             "leaderboard": self.nav_to_leaderboard,
@@ -54,7 +56,10 @@ class State():
         
     def nav_to_main(self):
         self.current_state = MainMenu(self.scene, self.nav_methods)
-        
+
+    def nav_to_more_games(self):
+        self.current_state = MoreGames(self.scene, self.nav_methods)
+
     def nav_to_credits(self):
         self.current_state = Credits(self.scene, self.nav_methods)
         
@@ -64,8 +69,11 @@ class State():
     def nav_to_game(self):
         self.current_state = Game(self.scene, self.nav_methods)
 
+    def nav_to_memory_game(self):
+        self.current_state = MemoryGame(self.scene, self.nav_methods)
+
     def nav_to_loss(self):
-        self.current_state = Loss(self.scene, self.nav_methods, self.last_game_record)
+        self.current_state = Loss(self.scene, self.nav_methods, self.last_game_record, self.scene.game_mode)
 
     def nav_to_win(self):
         self.current_state = Win(self.scene, self.nav_methods, self.last_game_record, self.leaderboard)
@@ -89,9 +97,12 @@ class State():
         self.daily_leaderboard = Leaderboard_JSON(self.leaderboard.get_daily_leaderboard())
         self.scene.daily_leaderboard = self.daily_leaderboard
 
-    def detect_presses(self, altered_states):
-        return self.current_state.detect_presses(altered_states)
-        
+    def detect_presses(self, altered_states, last_pressed):
+        return self.current_state.detect_presses(altered_states, last_pressed)
+    
+    def getBlinkState(self):
+        return self.current_state.blink_state
+
 class DefaultState():
     def __init__(self):
         pass
@@ -125,7 +136,7 @@ class MainMenu(DefaultState):
         self.state_name = "Main"
         self.scene = scene
         self.nav_methods = nav_methods
-        self.menu = ["Play", "Leaderboard", "Credits"]
+        self.menu = ["Play", "Leaderboard", "More Game Modes", "Credits"]
         self.selection = self.menu[0]
         self.slide = None
         self.render = None
@@ -166,6 +177,9 @@ class MainMenu(DefaultState):
             case "Leaderboard":
                 if self.render and not self.slide: 
                     self.slide = SlideTrasition(self.scene, self.nav_methods["daily_leaderboard"], self.render, "Daily Leaderboard")
+            case "More Game Modes":
+                if self.render and not self.slide: 
+                    self.slide = SlideTrasition(self.scene, self.nav_methods["more_games"], self.render, "More Game Modes")
             case "Credits":
                 if self.render and not self.slide: 
                     self.slide = SlideTrasition(self.scene, self.nav_methods["credits"], self.render, "Credits")
@@ -175,6 +189,52 @@ class MainMenu(DefaultState):
     
     def handle_goto_main(self):
         return None #main menu should never navigate to main menu
+
+class MoreGames(DefaultState):
+    def __init__(self, scene, nav_methods):
+        self.state_name = "More Game Modes"
+        self.scene = scene
+        self.nav_methods = nav_methods
+        self.more_games_menu = ["Memory Game", "asdf", "asdf2"]
+        self.selection = self.more_games_menu[0]
+        self.slide = None
+        self.render = None
+
+    def display_scene(self):
+        if self.slide:
+            self.slide.play_slide()
+        else:
+            self.render = self.scene.display_more_games(self.selection)
+        
+    def handle_up(self):
+        next_selection = self.more_games_menu.index(self.selection) - 1
+        self.selection = self.more_games_menu[next_selection % len(self.more_games_menu)]
+        self.display_scene
+        
+    def handle_down(self):
+        next_selection = self.more_games_menu.index(self.selection) + 1
+        self.selection = self.more_games_menu[next_selection % len(self.more_games_menu)]
+        self.display_scene
+        
+    def handle_select(self):
+        match self.selection:
+            case "Memory Game":
+                if self.render and not self.slide: 
+                    self.slide = SlideTrasition(self.scene, self.nav_methods["memory_game"], self.render, "Memory Game")
+            case "asdf":
+                if self.render and not self.slide: 
+                    self.slide = SlideTrasition(self.scene, self.nav_methods["daily_leaderboard"], self.render, "Daily Leaderboard")
+            case "asdf2":
+                if self.render and not self.slide: 
+                    self.slide = SlideTrasition(self.scene, self.nav_methods["more_games"], self.render, "More Game Modes")
+                
+    def handle_back(self):
+        if self.render and not self.slide:
+            self.slide = SlideTrasition(self.scene, self.nav_methods["main_menu"], self.render, "Main Menu")
+    
+    def handle_goto_main(self):
+        if self.render and not self.slide:
+            self.slide = SlideTrasition(self.scene, self.nav_methods["main_menu"], self.render, "Main Menu")
 
 class Credits(DefaultState):
     def __init__(self, scene, nav_methods):
@@ -263,6 +323,7 @@ class Game(DefaultState):
         self.possible_buttons.remove(self.target_button)
         # print("initial target")
         # print(self.target_button)
+        self.scene.game_mode = "Game"
 
 
     def display_scene(self):
@@ -301,7 +362,7 @@ class Game(DefaultState):
             self.slide = SlideTrasition(self.scene, self.nav_methods["win"], self.render, "Win")
     
     # Returns tuple of the target button if it was pressed and boolean for if the game is over (true is over, false is continuing game)
-    def detect_presses(self, altered_states):
+    def detect_presses(self, altered_states, last_pressed):
         if len(altered_states) > 0 and altered_states[0] == self.target_button:
             if len(self.possible_buttons) == 0:
                 last_button_num = int(self.target_button.split("_")[1])
@@ -331,6 +392,174 @@ class Game(DefaultState):
             except:
                 pass #lol
         return self.target_button, False
+
+class MemoryGame(DefaultState):
+    def __init__(self, scene, nav_methods):
+        self.state_name = "Memory Game"
+        self.scene = scene
+        self.nav_methods = nav_methods
+        self.slide = None
+        self.render = None
+
+        self.memory_list = []
+        self.pressed_list = []
+
+        self.blinking = False
+        self.blink_timer = 0
+        self.blink_length = 0
+
+        self.blink_state = (0, 0)
+        self.blink_position = 0
+        self.lead_time = 30
+        self.on_time = 25
+        self.off_time = 10
+
+        # Determines how buttons are displayed. First value is if button is pressed. Second value is if LED is lit.
+        self.display_buttons_state = [(0,0)]*36
+        #self.possible_buttons = ["BUTTON_1", "BUTTON_2", "BUTTON_3", "BUTTON_4", "BUTTON_5", "BUTTON_6","BUTTON_7", "BUTTON_8", "BUTTON_9", "BUTTON_10"]
+        self.possible_buttons = ["BUTTON_1", "BUTTON_2", "BUTTON_3", "BUTTON_4", "BUTTON_5", "BUTTON_6", 
+                                 "BUTTON_7", "BUTTON_8", "BUTTON_9", "BUTTON_10", "BUTTON_11", "BUTTON_12", 
+                                 "BUTTON_13", "BUTTON_14", "BUTTON_15", "BUTTON_16", "BUTTON_17", "BUTTON_18", 
+                                 "BUTTON_19", "BUTTON_20", "BUTTON_21", "BUTTON_22", "BUTTON_23", "BUTTON_24", 
+                                 "BUTTON_25", "BUTTON_26", "BUTTON_27", "BUTTON_28", "BUTTON_29", "BUTTON_30", 
+                                 "BUTTON_31", "BUTTON_32", "BUTTON_33", "BUTTON_34", "BUTTON_35", "BUTTON_36"]
+        self.memory_list.append(random.choice(self.possible_buttons))
+        self.target_button = self.memory_list[0]
+        self.blink_state = (self.memory_list[self.blink_position] , 1)
+        print(self.memory_list)
+        self.target_button_num = int(self.target_button.split("_")[1])
+        self.display_buttons_state[self.target_button_num-1] = (self.display_buttons_state[self.target_button_num-1][0], 1)
+
+        self.scene.game_mode = "Memory Game"
+
+
+    def display_scene(self):
+        if self.slide:
+            self.slide.play_slide()
+        else:
+            if self.blinking == True and self.blink_timer <= self.blink_length:
+                self.blink_sequence()
+            else:
+                self.blinking = False
+                self.blink_timer = 0
+            self.render = self.scene.display_memory_game(len(self.memory_list) - 1, self.display_buttons_state)
+        
+    def handle_up(self):
+        return None
+        
+    def handle_down(self):
+        return None
+        
+    def handle_select(self):
+        return None
+        
+    def handle_back(self):
+        if self.render and not self.slide:
+            self.slide = SlideTrasition(self.scene, self.nav_methods["main_menu"], self.render, "Main Menu")
+    
+    def handle_goto_main(self):
+        if self.render and not self.slide:
+            self.slide = SlideTrasition(self.scene, self.nav_methods["main_menu"], self.render, "Main Menu")
+
+    def handle_loss(self, message):
+        if self.render and not self.slide:
+            self.scene.last_game_record = int(message[0].split(":")[1])
+            self.scene.last_game_state = {"buttons": self.display_buttons_state, "target": self.target_button, "altered": self.altered_button}
+            self.slide = SlideTrasition(self.scene, self.nav_methods["loss"], self.render, "Loss")
+
+    def handle_win(self):
+        pass # you cannot win
+
+    def blink_sequence(self):
+        print("blink timer")
+        print(self.blink_timer)
+        print("blink length")
+        print(self.blink_length)
+        print("blink position")
+        print(self.blink_position)
+        #turn on light during on time
+        if self.blink_timer == 0:
+            self.blink_state = (self.memory_list[self.blink_position],0)
+        elif self.blink_timer == self.lead_time + (self.blink_position * self.on_time) + (self.blink_position * self.off_time):
+            # print("blink pos")
+            # print(self.blink_position)
+            # print("turning on light")
+            # print("int(self.memory_list[self.blink_position].split('_')[1])-1")
+            # print(int(self.memory_list[self.blink_position].split("_")[1])-1)
+            # print((self.display_buttons_state[int(self.memory_list[self.blink_position].split("_")[1])-1][0], 1))
+            # print("blink state")
+            # print((self.memory_list[self.blink_position],1))
+            self.blink_state = (self.memory_list[self.blink_position],1)
+            self.display_buttons_state[int(self.memory_list[self.blink_position].split("_")[1])-1] = (self.display_buttons_state[int(self.memory_list[self.blink_position].split("_")[1])-1][0], 1)
+        #turn off light during off time
+        elif self.blink_timer == self.lead_time + (self.blink_position + 1) * self.on_time + self.blink_position * self.off_time:
+            # print("turning off light")
+            self.blink_state = (self.memory_list[self.blink_position],0)
+            self.display_buttons_state = [(0,0)]*36
+            if (self.blink_position < len(self.memory_list) - 1):
+                self.blink_position = self.blink_position + 1
+            # print("blink pos")
+            # print(self.blink_position)
+        #finish blinking
+        if self.blink_timer == self.blink_length:
+            # print("blinking finished")
+            self.blinking = False
+        self.blink_timer = self.blink_timer + 1
+
+    def getCurrentBlink(self):
+        pass
+
+    # Returns tuple of the target button if it was pressed and boolean for if the game is over (true is over, false is continuing game)
+    def detect_presses(self, altered_states, last_pressed):
+        if not self.blinking:
+            if last_pressed != None:
+                # print("last_pressed")
+                # print(last_pressed)
+                # print("")
+                # print("self.target_button")
+                # print(self.target_button)
+                # print("")
+                self.pressed_list.append(last_pressed)
+                if last_pressed == self.target_button:
+                    # print("self.memory_list")
+                    # print(self.memory_list)
+                    # print("")
+                    # print("self.pressed_list")
+                    # print(self.pressed_list)
+                    # print("")
+                        
+                    if len(self.memory_list) == len(self.pressed_list):
+                        self.memory_list.append(random.choice(self.possible_buttons))
+                        self.display_buttons_state = [(0,0)]*36
+                        self.pressed_list = []
+                        self.blink_timer = 0
+                        self.blink_position = 0
+                        self.blinking = True
+                        self.target_button = self.memory_list[0]
+                        self.blink_length = self.lead_time + (len(self.memory_list) * self.on_time) + ((len(self.memory_list) - 1) * self.off_time)
+                        print("new blink length")
+                        print(self.blink_length)
+                    else:
+                        self.target_button = self.memory_list[len(self.pressed_list)]
+
+
+                elif last_pressed != self.target_button or (len(altered_states) > 1):
+                    # print("altered button")
+                    # print(altered_states[0])
+                    # print("target button")
+                    # print(self.target_button)
+                    try:
+                        print("triggering loss")
+                        self.altered_button = int(last_pressed.split("_")[1])
+                        pressed = len(self.memory_list) - 1
+                        self.target_button = "pressed:" + str(pressed)
+                        return self.target_button, True
+                    except Exception as e:
+                        print(f"write better exception handling {e}")
+                        pass #lol
+            return self.target_button, False
+        else:
+            return self.target_button, False
 
 class Leaderboard(DefaultState):
     def __init__(self, scene, nav_methods, leaderboard):
@@ -414,13 +643,14 @@ class DailyLeaderboard(DefaultState):
             self.slide = SlideTrasition(self.scene, self.nav_methods["main_menu"], self.render, "Main Menu")
 
 class Loss(DefaultState):
-    def __init__(self, scene, nav_methods, last_game_record):
+    def __init__(self, scene, nav_methods, last_game_record, game_mode):
         self.state_name = "Loss"
         self.scene = scene
         self.nav_methods = nav_methods
         self.slide = None
         self.render = None
         self.last_game_record = last_game_record
+        self.game_mode = game_mode
 
     def display_scene(self):
         if self.slide:
@@ -436,7 +666,14 @@ class Loss(DefaultState):
         
     def handle_select(self):
         if self.render and not self.slide:
-            self.slide = SlideTrasition(self.scene, self.nav_methods["game"], self.render, "Game")
+            match self.game_mode:
+                case "Game":
+                    nav_type = "game"
+                case "Memory Game":
+                    nav_type = "memory_game"
+            print("nav_type")
+            print(nav_type)
+            self.slide = SlideTrasition(self.scene, self.nav_methods[nav_type], self.render, self.game_mode)
 
     def handle_back(self):
         if self.render and not self.slide:

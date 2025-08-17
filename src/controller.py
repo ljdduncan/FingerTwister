@@ -35,6 +35,7 @@ def control_buttons(game_buttons, LED_mapping, switch_mapping):
     led_states = [0]*40
     switch_states = [0]*40
     altered_states = []
+    last_pressed = None
 
     # Sets up LED register to be pushed
     for button_key, button_value in game_buttons.items():
@@ -90,5 +91,7 @@ def control_buttons(game_buttons, LED_mapping, switch_mapping):
                 # print("switch mapped to:")
                 # print(switch_mapping[index])
                 altered_states.append(switch_mapping[index])
+                if new_switch_state == 1:
+                    last_pressed = switch_mapping[index]
     
-    return altered_states
+    return altered_states, last_pressed

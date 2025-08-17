@@ -8,11 +8,17 @@ class Scene():
         self.leaderboard = leaderboard
         self.daily_leaderboard = daily_leaderboard
         self.last_game_state = {}
+        self.game_mode = "Game"
 
     def display_main_menu(self, selection, timer_buttons):
         main_surface = render.render_main_menu(selection, timer_buttons)
         self.window.blit(main_surface, (0,0))
         return main_surface
+
+    def display_more_games(self, selection):
+        more_games_surface = render.render_more_games(selection, self.timer_buttons)
+        self.window.blit(more_games_surface, (0,0))
+        return more_games_surface
 
     def display_credits(self):
         credit_surface = render.render_credits()
@@ -28,6 +34,11 @@ class Scene():
         game_surface = render.render_game(display_buttons_state)
         self.window.blit(game_surface, (0,0))
         return game_surface
+
+    def display_memory_game(self, current_score, display_buttons_state):
+        memory_game_surface = render.render_memory_game(current_score, display_buttons_state)
+        self.window.blit(memory_game_surface, (0,0))
+        return memory_game_surface
 
     def display_loss(self, last_game_record, last_game_state):
         self.last_game_record = last_game_record
@@ -81,4 +92,7 @@ class Scene():
                 return render.render_loss(self.last_game_record, self.last_game_state)
             case "Win":
                 return render.render_win(self.last_game_record, 0, [65, 65, 65], self.last_game_state)
-
+            case "Memory Game":
+                return render.render_memory_game(0, [(0,0)]*36)
+            case "More Game Modes":
+                return render.render_more_games("Memory Game", self.timer_buttons)
