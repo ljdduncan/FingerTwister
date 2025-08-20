@@ -136,7 +136,7 @@ class MainMenu(DefaultState):
         self.state_name = "Main"
         self.scene = scene
         self.nav_methods = nav_methods
-        self.menu = ["Play", "Leaderboard", "More Game Modes", "Credits"]
+        self.menu = ["Play", "Memory Game", "Leaderboard", "Credits"]
         self.selection = self.menu[0]
         self.slide = None
         self.render = None
@@ -174,12 +174,15 @@ class MainMenu(DefaultState):
             case "Play":
                 if self.render and not self.slide: 
                     self.slide = SlideTrasition(self.scene, self.nav_methods["game"], self.render, "Game")
+            case "Memory Game":
+                if self.render and not self.slide: 
+                    self.slide = SlideTrasition(self.scene, self.nav_methods["memory_game"], self.render, "Memory Game")
             case "Leaderboard":
                 if self.render and not self.slide: 
                     self.slide = SlideTrasition(self.scene, self.nav_methods["daily_leaderboard"], self.render, "Daily Leaderboard")
-            case "More Game Modes":
-                if self.render and not self.slide: 
-                    self.slide = SlideTrasition(self.scene, self.nav_methods["more_games"], self.render, "More Game Modes")
+            # case "More Game Modes":
+                # if self.render and not self.slide: 
+                    # self.slide = SlideTrasition(self.scene, self.nav_methods["more_games"], self.render, "More Game Modes")
             case "Credits":
                 if self.render and not self.slide: 
                     self.slide = SlideTrasition(self.scene, self.nav_methods["credits"], self.render, "Credits")

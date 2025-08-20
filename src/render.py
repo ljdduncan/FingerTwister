@@ -81,8 +81,9 @@ play_again_position = (225, 480)
 # Main Menu items
 mm_header = text.render_text("Finger Twister", 120, settings.TEXT_COLOR, (settings.DISPLAY_W/2,250), True)
 mm_play_option = text.render_text("Play", 80, settings.TEXT_COLOR, (500,400))
-mm_leaderboard_option = text.render_text("Leaderboard", 80, settings.TEXT_COLOR, (500,500))
-mm_more_games_option = text.render_text("More Game Modes", 80, settings.TEXT_COLOR, (500,600))
+mm_more_games_option = text.render_text("Memory Game", 80, settings.TEXT_COLOR, (500,500))
+mm_leaderboard_option = text.render_text("Leaderboard", 80, settings.TEXT_COLOR, (500,600))
+# mm_more_games_option = text.render_text("More Game Modes", 80, settings.TEXT_COLOR, (500,600))
 mm_credits_option = text.render_text("Credits", 80, settings.TEXT_COLOR, (500,700))
 mm_cursor = text.render_text("->", 80, settings.TEXT_COLOR, (400,400))
 
@@ -234,9 +235,9 @@ def render_main_menu(selection, timer_buttons):
     match selection:
         case "Play":
             main_menu_surface.blit(mm_cursor[0], mm_cursor[1])
-        case "Leaderboard":
+        case "Memory Game":
             main_menu_surface.blit(mm_cursor[0], (mm_cursor[1][0], mm_cursor[1][1] + 100)) #disgusting calc. essentially just modifies the position tuple to offset it
-        case "More Game Modes":
+        case "Leaderboard":
             main_menu_surface.blit(mm_cursor[0], (mm_cursor[1][0], mm_cursor[1][1] + 200))
         case "Credits":
             main_menu_surface.blit(mm_cursor[0], (mm_cursor[1][0], mm_cursor[1][1] + 300))
